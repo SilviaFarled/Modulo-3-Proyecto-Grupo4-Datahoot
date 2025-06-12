@@ -7,6 +7,7 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 from sklearn.impute import KNNImputer
 from sklearn.impute import SimpleImputer
+import scipy.stats as stats
 
 # Variables
 
@@ -219,11 +220,19 @@ renombrar_columnas = {
     'nivel_satisfaccion_conciliacion': 'Satisf. conciliación'
 }
 
+columnas_a_analizar= ['ID', 'Edad', 'Año nac.', 'Nivel estudios', 'Distancia casa',
+       'Formaciones (últ. año)', 'Trabajos previos', 'Años activo',
+       'Antigüedad', 'Años desde ascenso', 'Años mismo jefe', 'Categoría',
+       'Evaluación', '€/hora', '€/día', '€/mes', 'Ingreso mensual',
+       '% aumento salario', 'Acciones empresa', 'Compromiso', 'Satisf. global',
+       'Satisf. trabajo', 'Satisf. relaciones', 'Satisf. conciliación']
+
 
 #Funciones
 
 def lectura(csv):
     df1=pd.read_csv(csv, index_col=0)
+    print("Abierto fichero")
     return df1
 
 
@@ -259,14 +268,17 @@ def eda_basico(df):
 def rename(df1):
     df1.rename(columns = nuevas_columnas, inplace = True)
     df1= df1[columnas_orden]
+    print("Renombradas columnas")
     return df1
 
 def eliminar_columnas(df1):
     df1.drop(columnas_eliminar, axis = 1, inplace = True)
+    print("Eliminadas columnas")
     return df1
 
 def reemplazo_edad (df1):
     df1["edad"] = df1["edad"].replace(numeros_en_letras)
+    print("Remplazada edad a número")
     return df1
 
 def pasar_a_float (columna):
@@ -279,10 +291,12 @@ def correccion_tarifa_hora(df1):
     df1['tarifa_hora']=df1['tarifa_hora'].replace("Not Available", None)
     df1['tarifa_hora']=df1['tarifa_hora'].astype(float)
     df1['tarifa_hora'].isnull().sum()
+    print("Corregido el dato de tarfia-hora")
     return df1
 
 def correccion_distancia_domicilio(df1):
     df1["distancia_domicilio"] = ((df1["distancia_domicilio"].abs().astype(float))*1.60934).round(2)
+    print("Corregido el dato de distancia al domicilio")
     return df1
 
 
@@ -290,6 +304,7 @@ def minusculas(df1):
     lista_minusculas= ['departamento','puesto']
     for i in lista_minusculas:
         df1[i] = df1[i].str.lower().str.strip()
+        print("Modificado el tipo de letra a minúscula")
     return df1
 
 
@@ -304,27 +319,33 @@ def pasar_a_int(valor):
 def correccion_genero(df1):
     diccionario_genero = {0:'male', 1:'female'}
     df1['genero'] = df1['genero'].astype(object).map(diccionario_genero)
+    print("Normalizada la columna género")
     return df1
 
 def correccion_estado_civil(df1):
     df1['estado_civil'] = df1['estado_civil'].str.lower().str.replace('marreid','married')
+    print("Normalizada la columna de estado civil")
     return df1
 
 def correccion_teletrabajo(df1):
     diccionario_teletrabajo= {'0':'no', '1':'yes','False':'no','True':'yes','Yes':'yes'}
     df1['teletrabajo']=df1['teletrabajo'].map(diccionario_teletrabajo)
+    print("Normalizados los datos de teletrabajo")
     return df1
 
 def correccion_tipo_jornada(df1):
     df1['tipo_jornada']=df1['tipo_jornada'].str.replace('80,0','part time')
+    print("Corregida la columna de tipo de jornada")
     return df1
 
 def correccion_satisf(df1):
     df1.loc[df1['nivel_satisfaccion_global'] > 9, 'nivel_satisfaccion_global'] = df1['nivel_satisfaccion_global'] // 10
+    print("Corregido el dato de satisfacción global")
     return df1
 
 def correccion_viaje(df1):
     df1['frecuencia_viaje'] =df1['frecuencia_viaje'].str.replace('-',' ').str.replace('_',' ')
+    print("Quitados los guiones de frecuencia de viaje")
     return df1
 
 
@@ -338,22 +359,23 @@ def gestionar_nulos(df1):
     nulls_numeric = null_percent[numeric_cols]
     nulls_categorical = null_percent[categorical_cols]
     nulls_datetime = null_percent[datetime_cols]
-    print(":gráfico_de_barras: Nulos en columnas numéricas:")
+    print("Nulos en columnas numéricas:")
     print(nulls_numeric.sort_values(ascending=False))
-    print("\n:abc: Nulos en columnas categóricas:")
+    print("\nNulos en columnas categóricas:")
     print(nulls_categorical.sort_values(ascending=False))
-    print("\n:calendario_de_sobremesa: Nulos en columnas de fecha:")
+    print("\nNulos en columnas de fecha:")
     print(nulls_datetime.sort_values(ascending=False))
     for col, null_pct in nulls_numeric.items():
-        if null_pct > 40:
+        if null_pct > 60:
             df1.drop(columns=[col], inplace=True)
         elif np.isclose(df1[col].mean(), df1[col].median()):
             df1[col] = df1[col].fillna(df1[col].mean())
         else:
             df1[col] = df1[col].fillna(df1[col].median())
+    print("Columnas numéricas imputadas")
     for col, null_pct in nulls_categorical.items():
+        value_counts = df1[col].value_counts(normalize=True, dropna=True)
         if null_pct < 10:
-            value_counts = df1[col].value_counts(normalize=True, dropna=True)
             if len(value_counts) >= 2:
                 top1 = value_counts.iloc[0]
                 top2 = value_counts.iloc[1]
@@ -362,14 +384,16 @@ def gestionar_nulos(df1):
                     df1[col] = df1[col].fillna(moda)
                 else:
                     df1[col] = df1[col].fillna("Desconocido")
-            else:
-                moda = value_counts.index[0]
-                df1[col] = df1[col].fillna(moda)
+        else:
+            moda = value_counts.index[0]
+            df1[col] = df1[col].fillna(moda)
+    print("Columnas categóricas imputadas")
     for col, null_pct in nulls_datetime.items():
         if null_pct > 40:
             df1.drop(columns=[col], inplace=True)
         else:
             df1[col] = df1[col].fillna(pd.to_datetime("1900-01-01"))
+    print("Columnas de fecha imputadas")
     return df1
 
 def ajuste_tipo_dato(df1):
@@ -387,6 +411,71 @@ def renombrado2(df1):
 def guardado(df1, nombre):
     df1.to_csv(nombre)
     return
+
+
+def prueba_hipotesis (df, columna2):
+    # Para usar esta función, crear un df solo con las dos columnas que interesen, una de ellas "Estado". Pasamos nombre del df y nombre segunda columna a analizar. 
+
+    desvinculado = df[df["Estado"] == "Desvinculado"][columna2]
+    activo = df[df["Estado"] == "Activo"][columna2]
+    args = desvinculado, activo
+
+     # Verificar si hay al menos dos grupos
+    if len(args) < 2:
+        raise ValueError("Se necesitan al menos dos conjuntos de datos para realizar la prueba.")
+    # Comprobar normalidad en cada grupo
+    normalidad = []
+    for grupo in args:
+        if len(grupo) > 50: #aquí vamos a decidir hacer komogorov porque es más potente y shapiro solo en muestras pequeñas
+            p_valor_norm = stats.kstest(grupo, 'norm').pvalue    # Kolmogorov-Smirnov si n > 50
+        else:
+            p_valor_norm = stats.shapiro(grupo).pvalue  # Shapiro-Wilk si n <= 50
+        normalidad.append(p_valor_norm > 0.05)
+
+    datos_normales = all(normalidad)  # True si todos los grupos son normales, all() solo devuelve True si todos los elementos son True
+    # Prueba de igualdad de varianzas
+    if datos_normales:
+        p_valor_varianza = stats.bartlett(*args).pvalue  # Test de Bartlett si los datos son normales
+    else:
+        p_valor_varianza = stats.levene(*args, center="median").pvalue  # Test de Levene si no son normales
+
+    varianzas_iguales = p_valor_varianza > 0.05
+    # Aplicar el test adecuado
+    if datos_normales:
+        if varianzas_iguales:
+            t_stat, p_valor = stats.ttest_ind(*args, equal_var=True)
+            test_usado = "t-test de Student (varianzas iguales)"
+        else:
+            t_stat, p_valor = stats.ttest_ind(*args, equal_var=False)
+            test_usado = "t-test de Welch (varianzas desiguales)"
+    else:
+        t_stat, p_valor = stats.mannwhitneyu(*args)
+        test_usado = "Mann-Whitney U"
+    # Nivel de significancia
+    alfa = 0.05
+    # Resultados
+    resultado = {
+        "Test de Normalidad": normalidad,
+        "Datos Normales": datos_normales,
+        "p-valor Varianza": p_valor_varianza,
+        "Varianzas Iguales": varianzas_iguales,
+        "Test Usado": test_usado,
+        "Estadístico": t_stat,
+        "p-valor": p_valor,
+        "Conclusión": "Rechazamos H0. Es decir, sí hay diferencias significativas)" if p_valor < alfa else "No se rechaza H0. Es decir, no hay diferencias significativas)"
+    }
+
+    if p_valor < alfa:
+        # Imprimir resultados de manera más clara
+        print("\n -----------") 
+        print(f"Prueba de hipotesis sobre las columnas Estado y {columna2}")
+        print("\n📊 **Resultados de la Prueba de Hipótesis** 📊")
+        print(f"✅ Test de Normalidad: {'Sí' if datos_normales else 'No'}")
+        print(f"   - Normalidad por grupo: {normalidad}")
+        print(f"✅ Test de Varianza: {'Iguales' if varianzas_iguales else 'Desiguales'} (p = {p_valor_varianza:.4f})")
+        print(f"✅ Test aplicado: {test_usado}")
+        print(f"📉 Estadístico: {t_stat:.4f}, p-valor: {p_valor:.4f}")
+        print(f"🔍 Conclusión: {resultado['Conclusión']}")
 
 
 #Funciones combinadas
@@ -418,3 +507,9 @@ def gestion_nulos(df1, nombre):
     df1= renombrado2(df1)
     guardado(df1, nombre)
     return df1
+
+def realizar_prueba_hipotesis (df1):
+    for i in columnas_a_analizar:
+        df_prueba= df1[["Estado", i]]
+        prueba_hipotesis(df_prueba, i)
+        return
