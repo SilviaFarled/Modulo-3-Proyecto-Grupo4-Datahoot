@@ -75,22 +75,29 @@ El análisis se basa en un dataset de recursos humanos que contiene información
 
 **Contenido:**
 - Definición de paleta de colores corporativos
+- Prueba de hipótesis sobre las columnas numéricas
 - **Gráfico 1**: Comparación de variables emocionales (satisfacción y compromiso)
 - **Gráfico 2**: Análisis de historia laboral mediante boxplots
 - **Gráfico 3**: Relación entre antigüedad y tiempo con el mismo responsable
 - **Gráfico 4**: Análisis de conciliación laboral por tipo de jornada
 - **Gráfico 5**: Comparación entre evaluación de desempeño e incremento salarial
 - **Perfil del empleado desvinculado**: Análisis demográfico detallado
+- BONUS: Inserción de datos en SQL 
 
 **Principales insights:**
 - Empleados desvinculados muestran menor satisfacción en todas las dimensiones
 - Menor antigüedad y experiencia laboral en el grupo desvinculado
 - Perfil típico: hombre de 33-34 años con menor satisfacción en conciliación
 
-#### 📊 PARTE 4 - Visualizaciones Adicionales
-**Archivo:** `PARTE-4-caotco.ipynb`
+#### 📊 ETL - Carpeta con el código de ETL (incompleto)
+**Archivos:** `main.py`
+              `funciones.py`
+              `graficos.py`
+              `load_sql.py`
+              `HR RAW DATA.csv`
+              `HR LIMPIO.csv`
 
-Contiene análisis y visualizaciones complementarias para profundizar en hallazgos específicos.
+Contiene toda la información indicada en todos los puntos anteriores en formato python.
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -144,6 +151,10 @@ El proyecto sigue metodología Agile/Scrum con las siguientes fases:
 - Desarrollo de dashboard interactivo
 - Creación de sistema ETL automatizado
 - Diseño de base de datos optimizada para análisis de HR
+
+## 🌈 Presentación
+
+https://www.canva.com/design/DAGpmKBoF8w/sCUkzv78Kklt-e5wLq-gfw/edit?utm_content=DAGpmKBoF8w&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 ---
 
