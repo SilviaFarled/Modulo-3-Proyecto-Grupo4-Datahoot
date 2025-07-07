@@ -40,7 +40,7 @@ def histograma(df1):
         plt.xlabel(col)
         plt.ylabel('Frecuencia')
         plt.show()
-        return
+    return
 
 
 def estado_num (df):
@@ -72,6 +72,7 @@ def grafico_1(df1):
 
 
 def grafico_2(df1):
+    #Historia laboral
     fig, axes = plt.subplots(2, 2, figsize=(14, 8))
     fig.patch.set_facecolor("#dce3f0")
     axes = axes.flatten()
@@ -93,6 +94,7 @@ def grafico_2(df1):
 
 
 def grafico_3(df1):
+    #Antigüedad - años con el mismo responsable
     df_mod = df1.copy()
     fig, ax = plt.subplots()
     fig.patch.set_facecolor("#dce3f0")  # Cambia el color del fondo general
@@ -109,6 +111,7 @@ def grafico_3(df1):
 
 
 def grafico_4(df1):
+    # Conciliación - estado - jornada
     df_num = estado_num(df1)
     df2 = df_num.copy()
     df2 = df2.dropna(subset=['Satisf. conciliación', 'Estado', 'Jornada'])

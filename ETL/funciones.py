@@ -277,7 +277,7 @@ def eliminar_columnas(df1):
     return df1
 
 def reemplazo_edad (df1):
-    df1["edad"] = df1["edad"].replace(numeros_en_letras)
+    df1["edad"] = df1["edad"].replace(numeros_en_letras).astype(int)
     print("Remplazada edad a número")
     return df1
 
@@ -482,7 +482,6 @@ def prueba_hipotesis (df, columna2):
 
 def visualizacion_y_limpieza (csv):
     df1=lectura(csv)
-    eda_basico(df1)
     df1=rename(df1)
     df1= eliminar_columnas(df1)
     df1= reemplazo_edad (df1)
@@ -506,10 +505,17 @@ def gestion_nulos(df1, nombre):
     df1= ajuste_tipo_dato(df1)
     df1= renombrado2(df1)
     guardado(df1, nombre)
+    eda_basico(df1)
     return df1
 
 def realizar_prueba_hipotesis (df1):
+    columnas_a_analizar= ['ID', 'Edad', 'Año nac.', 'Nivel estudios', 'Distancia casa',
+       'Formaciones (últ. año)', 'Trabajos previos', 'Años activo',
+       'Antigüedad', 'Años desde ascenso', 'Años mismo jefe', 'Categoría',
+       'Evaluación', '€/hora', '€/día', '€/mes', 'Ingreso mensual',
+       '% aumento salario', 'Acciones empresa', 'Compromiso', 'Satisf. global',
+       'Satisf. trabajo', 'Satisf. relaciones', 'Satisf. conciliación']
     for i in columnas_a_analizar:
         df_prueba= df1[["Estado", i]]
         prueba_hipotesis(df_prueba, i)
-        return
+        
